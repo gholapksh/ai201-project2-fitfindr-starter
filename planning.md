@@ -193,18 +193,19 @@ Give Claude the full Architecture diagram above and the Planning Loop section. A
 
 ## A Complete Interaction (Step by Step)
 
-Write out what a full user interaction looks like from start to finish — tool call by tool call. Use a specific example query.
-
 **Example user query:** "I'm looking for a vintage graphic tee under $30. I mostly wear baggy jeans and chunky sneakers. What's out there and how would I style it?"
 
 **Step 1:**
-<!-- What does the agent do first? Which tool is called? With what input? -->
+The agent parses the query using regex to extract: description = "vintage graphic tee", size = None (no size specified), max_price = 30.0. It calls `search_listings("vintage graphic tee", size=None, max_price=30.0)`. The function loads all 40 listings, filters out anything over $30, scores each remaining item by keyword overlap against "vintage", "graphic", "tee" across title, style_tags, category, and description fields. Returns a sorted list of matches. The agent sets `session["selected_item"] = results[0]` — the top result, e.g. "Y2K Baby Tee — Butterfly Print, $18, depop, size S/M, excellent condition."
 
 **Step 2:**
-<!-- What happens next? What was returned from step 1? What tool is called now? -->
+The agent calls `suggest_outfit(session["selected_item"], wardrobe)`. The wardrobe has 10 items including baggy straight-leg jeans, chunky white sneakers, black combat boots, and a vintage denim jacket. The LLM receives a prompt with the item's style tags (y2k, vintage, graphic tee, cottagecore) and colors (white, pink, purple) alongside the wardrobe pieces. It returns two complete outfit suggestions referencing specific wardrobe items by name. The agent stores this in `session["outfit_suggestion"]`.
 
 **Step 3:**
-<!-- Continue until the full interaction is complete -->
+The agent calls `create_fit_card(session["outfit_suggestion"], session["selected_item"])`. The LLM receives the outfit description plus item context (title, $18, depop) and generates a 2-3 sentence casual Instagram-style caption. Temperature is 0.95 so output varies each run. The result is stored in `session["fit_card"]`.
 
 **Final output to user:**
-<!-- What does the user actually see at the end? -->
+Three panels populate in the Gradio UI:
+- **🛍️ Top listing found:** "Y2K Baby Tee — Butterfly Print / Brand: None / Price: $18.0 / Platform: depop / Size: S/M / Condition: excellent / Colors: white, pink, purple / Style tags: y2k, vintage, graphic tee, cottagecore / Super cute early 2000s baby tee with butterfly graphic..."
+- **👗 Outfit idea:** Two complete outfit suggestions using the user's actual wardrobe pieces — baggy jeans, chunky sneakers, combat boots, denim jacket — with specific styling tips.
+- **✨ Your fit card:** A casual caption like "thrifted this y2k butterfly tee off depop for $18 and it was literally made for my baggy jeans 🦋 obsessed with this whole look"
